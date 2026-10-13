@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#050b1a" />
+<title>Buffer Quest: Misi Laboratorium Kimia</title>
+<style>
+/* ==================== RESET & VARIABEL ==================== */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg1:#050b1a; --bg2:#0a1a2f;
+  --accent:#22e0c8; --accent2:#3b82f6; --accent3:#8b5cf6;
+  --gold:#ffc857; --danger:#ff5c7a; --ok:#3ddc97;
+  --txt:#e6f4ff; --muted:#8fb3d9;
+  --glass:rgba(12,26,48,.78);
+  --border:rgba(90,200,220,.22);
+  --radius:18px;
+}
+html,body{min-height:100%}
+body{
+  font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+  background:radial-gradient(circle at 15% 0%, #12294a 0%, #071226 45%, #02060f 100%);
+  color:var(--txt); overflow-x:hidden; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+#bg3d{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block}
+.veil{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(0,0,0,0) 30%, rgba(2,6,15,.55) 100%),
+    linear-gradient(180deg, rgba(2,6,15,.35) 0%, rgba(2,6,15,.05) 30%, rgba(2,6,15,.65) 100%);
+}
+/* ==================== HUD ==================== */
+.hud{
+  position:fixed;top:0;left:0;right:0;z-index:30;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 14px;
+  background:linear-gradient(180deg, rgba(4,12,24,.92), rgba(4,12,24,.55));
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  transition:transform .35s ease, opacity .35s ease;
+}
+.hud.hidden{transform:translateY(-110%);opacity:0;pointer-events:none}
+.hud-id{display:flex;align-items:center;gap:9px;min-width:0}
+.hud-avatar{
+  width:36px;height:36px;flex:0 0 36px;display:grid;place-items:center;font-size:19px;
+  border-radius:11px;background:linear-gradient(135deg,#0e2b48,#123a5e);
+  border:1px solid var(--border);box-shadow:0 0 14px rgba(34,224,200,.18)
+}
+.hud-name{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.hud-rank{font-size:11px;color:var(--accent);letter-spacing:.4px}
+.hud-stats{display:flex;align-items:center;gap:8px}
+.xp-pill{
+  display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;
+  padding:6px 12px;border-radius:999px;color:#04121a;
+  background:linear-gradient(135deg,var(--accent),#3ddc97);
+  box-shadow:0 0 16px rgba(34,224,200,.35);white-space:nowrap
+}
+.badge-strip{display:flex;gap:4px}
+.badge-strip .b{
+  width:26px;height:26px;border-radius:9px;display:grid;place-items:center;font-size:14px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);
+  filter:grayscale(1);opacity:.35;transition:.3s
+}
+.badge-strip .b.on{filter:none;opacity:1;background:linear-gradient(135deg,rgba(255,200,87,.25),rgba(255,200,87,.08));border-color:rgba(255,200,87,.5);box-shadow:0 0 12px rgba(255,200,87,.35)}
+/* ==================== STAGE / SCREEN ==================== */
+#stage{position:relative;z-index:10;padding:74px 14px 40px;max-width:960px;margin:0 auto}
+.screen{display:none}
+.screen.active{display:block;animation:fadeUp .5s cubic-bezier(.2,.8,.3,1)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.glass{
+  background:var(--glass);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 18px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);
+}
+/* ==================== START ==================== */
+.start-card{max-width:440px;margin:6vh auto 0;padding:30px 24px 26px;text-align:center}
+.logo-flask{font-size:58px;line-height:1;filter:drop-shadow(0 0 22px rgba(34,224,200,.6));animation:float 3.4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-11px)}}
+.start-card h1{
+  font-size:clamp(26px,7vw,36px);letter-spacing:2px;margin-top:8px;font-weight:800;
+  background:linear-gradient(90deg,#22e0c8,#3b82f6,#8b5cf6);
+  -webkit-background-clip:text;background-clip:text;color:transparent
+}
+.subtitle{color:var(--accent);font-size:13px;letter-spacing:3px;text-transform:uppercase;margin-top:2px}
+.desc{color:var(--muted);font-size:13px;margin:12px 0 22px}
+.start-card label{display:block;text-align:left;font-size:12px;color:var(--muted);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase}
+input[type=text]{
+  width:100%;padding:14px 16px;border-radius:13px;font-size:16px;
+  background:rgba(0,0,0,.35);border:1px solid var(--border);color:var(--txt);
+  outline:none;transition:.25s;font-family:inherit
+}
+input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(34,224,200,.16)}
+/* ==================== TOMBOL ==================== */
+button{font-family:inherit;cursor:pointer;border:none;color:inherit}
+.btn-primary{
+  width:100%;margin-top:16px;padding:15px;border-radius:13px;font-size:16px;font-weight:800;
+  letter-spacing:.6px;color:#03151a;
+  background:linear-gradient(135deg,var(--accent),#3ddc97);
+  box-shadow:0 10px 26px rgba(34,224,200,.32);transition:.22s
+}
+.btn-primary:active{transform:scale(.97)}
+.btn-primary:disabled{opacity:.4;box-shadow:none;cursor:not-allowed}
+.btn-ghost{
+  width:100%;margin-top:10px;padding:11px;border-radius:12px;font-size:13px;
+  background:transparent;border:1px solid rgba(255,255,255,.13);color:var(--muted);transition:.22s
+}
+.btn-ghost:hover{color:var(--danger);border-color:rgba(255,92,122,.5)}
+/* ==================== MENU MISI ==================== */
+.menu-head{padding:18px;margin-bottom:14px}
+.menu-head h2{font-size:19px;letter-spacing:.5px}
+.progress-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.08);margin:12px 0 7px;overflow:hidden}
+#progFill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));transition:width .6s cubic-bezier(.2,.8,.3,1);box-shadow:0 0 14px rgba(34,224,200,.5)}
+.prog-text{font-size:12px;color:var(--muted)}
+.mission-list{display:flex;flex-direction:column;gap:12px}
+.mission-btn{
+  display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+  padding:15px 16px;border-radius:var(--radius);
+  background:linear-gradient(135deg,rgba(20,48,82,.85),rgba(8,20,38,.9));
+  border:1px solid var(--border);position:relative;overflow:hidden;
+  transition:transform .2s, border-color .25s, box-shadow .25s
+}
+.mission-btn::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--mc,var(--accent));box-shadow:0 0 16px var(--mc,var(--accent));opacity:.85
+}
+.mission-btn:active{transform:scale(.975)}
+.mission-btn:hover{border-color:var(--mc,var(--accent));box-shadow:0 0 26px rgba(34,224,200,.16)}
+.mission-btn .ico{
+  width:48px;height:48px;flex:0 0 48px;border-radius:14px;display:grid;place-items:center;font-size:24px;
+  background:linear-gradient(135deg,rgba(255,255,255,.1),rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.1)
+}
+.mission-btn .txt{flex:1;min-width:0}
+.mission-btn .txt b{display:block;font-size:16px;letter-spacing:.4px}
+.mission-btn .txt span{display:block;font-size:12px;color:var(--muted);margin-top:1px}
+.mission-btn .stat{
+  font-size:11px;font-weight:800;padding:5px 10px;border-radius:99px;white-space:nowrap;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:var(--muted)
+}
+.mission-btn.done .stat{background:rgba(61,220,151,.16);border-color:rgba(61,220,151,.5);color:var(--ok)}
+/* ==================== MODUL ==================== */
+.module-wrap{padding:0;overflow:hidden}
+.module-head{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  border-bottom:1px solid var(--border);background:rgba(0,0,0,.22);
+  position:sticky;top:64px;z-index:12;backdrop-filter:blur(10px)
+}
+.module-head h2{font-size:16px;letter-spacing:.5px;flex:1}
+.btn-back{
+  padding:8px 13px;border-radius:10px;font-size:13px;font-weight:700;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);transition:.2s
+}
+.btn-back:active{transform:scale(.95)}
+#moduleBody{padding:18px 16px 26px}
+/* Tabs */
+.tabs{display:flex;gap:8px;margin-bottom:16px;background:rgba(0,0,0,.28);padding:5px;border-radius:13px}
+.tab{
+  flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:700;
+  background:transparent;color:var(--muted);transition:.25s
+}
+.tab.active{background:linear-gradient(135deg,var(--accent),#3ddc97);color:#03151a;box-shadow:0 6px 18px rgba(34,224,200,.28)}
+/* Materi */
+.materi-card{
+  padding:15px;border-radius:14px;margin-bottom:12px;
+  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);
+  border-left:3px solid var(--accent)
+}
+.materi-card h3{font-size:14.5px;color:var(--accent);margin-bottom:7px;letter-spacing:.3px}
+.materi-card p{font-size:13.5px;color:#c8ddf2;margin-bottom:6px}
+.materi-card ul{margin:6px 0 0 18px;font-size:13.5px;color:#c8ddf2}
+.materi-card li{margin-bottom:5px}
+.hl{color:var(--gold);font-weight:700}
+.formula-box{
+  background:rgba(0,0,0,.4);border:1px dashed rgba(34,224,200,.4);border-radius:11px;
+  padding:11px 13px;margin:9px 0;text-align:center;font-size:15px;letter-spacing:.4px;
+  color:#bff4ec;overflow-x:auto
+}
+.formula-box .big{font-size:17px;font-weight:700;color:var(--accent)}
+/* Kuis */
+.q-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.q-num{font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.q-xp{font-size:12px;font-weight:800;color:var(--gold)}
+.q-text{font-size:15px;line-height:1.65;margin-bottom:15px;color:#eaf6ff}
+.options{display:flex;flex-direction:column;gap:9px}
+.opt{
+  display:flex;align-items:flex-start;gap:11px;text-align:left;width:100%;
+  padding:13px 14px;border-radius:13px;font-size:14px;line-height:1.5;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);
+  transition:.22s;color:#d8e9fa
+}
+.opt .key{
+  width:25px;height:25px;flex:0 0 25px;border-radius:8px;display:grid;place-items:center;
+  font-size:12px;font-weight:800;background:rgba(255,255,255,.09);color:var(--muted);transition:.22s
+}
+.opt:hover:not(:disabled){border-color:var(--accent);background:rgba(34,224,200,.09)}
+.opt:disabled{cursor:default}
+.opt.correct{border-color:var(--ok);background:rgba(61,220,151,.16)}
+.opt.correct .key{background:var(--ok);color:#04150d}
+.opt.wrong{border-color:var(--danger);background:rgba(255,92,122,.13);opacity:.72}
+.opt.wrong .key{background:var(--danger);color:#1a0308}
+.opt.shake{animation:shake .42s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.feedback{
+  margin-top:14px;padding:13px 15px;border-radius:13px;font-size:13.5px;line-height:1.6;
+  animation:fadeUp .35s
+}
+.feedback.ok{background:rgba(61,220,151,.12);border:1px solid rgba(61,220,151,.42);color:#c6f7e0}
+.feedback.bad{background:rgba(255,92,122,.12);border:1px solid rgba(255,92,122,.42);color:#ffd2dc}
+.feedback b{color:#fff}
+.btn-next{
+  margin-top:14px;padding:12px 22px;border-radius:12px;font-weight:800;font-size:14px;
+  background:linear-gradient(135deg,var(--accent2),var(--accent3));color:#fff;
+  box-shadow:0 8px 22px rgba(59,130,246,.35);transition:.22s
+}
+.btn-next:active{transform:scale(.96)}
+/* ==================== TEKNOLOGI ==================== */
+.tech-grid{display:grid;gap:16px}
+.bench{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.beaker-card{
+  padding:14px 10px;border-radius:15px;text-align:center;
+  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)
+}
+.beaker-card.alert{border-color:rgba(255,92,122,.5);box-shadow:0 0 18px rgba(255,92,122,.18)}
+.beaker-label{font-size:11.5px;color:var(--muted);margin-bottom:10px;letter-spacing:.4px;min-height:30px;display:flex;align-items:center;justify-content:center}
+.mini-beaker{
+  position:relative;width:66px;height:84px;margin:0 auto 10px;
+  border:3px solid rgba(150,220,255,.42);border-top:none;
+  border-radius:2px 2px 12px 12px;overflow:hidden;background:rgba(255,255,255,.02)
+}
+.mini-beaker::after{
+  content:'';position:absolute;top:0;left:5px;width:7px;height:100%;
+  background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.02));border-radius:4px
+}
+.mini-liquid{position:absolute;bottom:0;left:0;right:0;height:64%;background:#3ddc97;opacity:.8;transition:height .45s, background .55s}
+.mini-liquid::before{content:'';position:absolute;top:-3px;left:0;right:0;height:6px;background:inherit;border-radius:50%;opacity:.6}
+.meter{
+  display:inline-flex;align-items:baseline;gap:5px;padding:7px 12px;border-radius:10px;
+  background:#03110c;border:1px solid rgba(61,220,151,.35);
+  box-shadow:inset 0 0 16px rgba(61,220,151,.2)
+}
+.meter-screen{font-family:'Courier New',monospace;font-size:20px;font-weight:800;color:#4dffa8;text-shadow:0 0 12px rgba(77,255,168,.75);letter-spacing:1px}
+.meter-tag{font-size:10px;color:#3ddc97;opacity:.8}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.ctl{
+  padding:12px 10px;border-radius:12px;font-size:13px;font-weight:700;
+  background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);transition:.2s
+}
+.ctl:active{transform:scale(.96)}
+.ctl:hover{border-color:var(--accent);background:rgba(34,224,200,.1)}
+.ctl.danger:hover{border-color:var(--danger);background:rgba(255,92,122,.1)}
+.log{
+  max-height:170px;overflow-y:auto;padding:12px;border-radius:13px;font-size:12.5px;
+  background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.07);color:#a8c8e6
+}
+.log div{padding:4px 0;border-bottom:1px dashed rgba(255,255,255,.06)}
+.log div:last-child{border:none}
+.log .g{color:var(--ok)} .log .r{color:var(--danger)} .log .y{color:var(--gold)}
+/* ==================== TEKNIK ==================== */
+.alat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin-bottom:20px}
+.alat{
+  padding:12px 6px;border-radius:14px;text-align:center;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);transition:.25s
+}
+.alat:hover{border-color:var(--accent);background:rgba(34,224,200,.08);transform:translateY(-3px)}
+.alat svg{width:46px;height:46px;color:var(--accent);display:block;margin:0 auto 7px}
+.alat b{display:block;font-size:11px;line-height:1.35;color:#d5e8fa}
+.alat span{display:block;font-size:9.5px;color:var(--muted);margin-top:3px;line-height:1.3}
+.steps-title{font-size:13px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px}
+.step{
+  display:flex;gap:12px;padding:13px;border-radius:13px;margin-bottom:9px;cursor:pointer;
+  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.075);transition:.25s
+}
+.step:hover{border-color:rgba(34,224,200,.45)}
+.step.done{background:rgba(61,220,151,.1);border-color:rgba(61,220,151,.4);cursor:default}
+.step.locked{opacity:.42;cursor:not-allowed}
+.step.shake{animation:shake .42s;border-color:var(--danger)}
+.step .n{
+  width:28px;height:28px;flex:0 0 28px;border-radius:9px;display:grid;place-items:center;
+  font-size:12.5px;font-weight:800;background:rgba(255,255,255,.09);color:var(--muted);transition:.25s
+}
+.step.done .n{background:var(--ok);color:#04150d}
+.step .c b{display:block;font-size:13.5px;margin-bottom:3px}
+.step .c p{font-size:12.5px;color:var(--muted);line-height:1.55}
+/* ==================== TOAST & MODAL ==================== */
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,140%);
+  padding:13px 22px;border-radius:14px;font-size:13.5px;font-weight:700;z-index:90;
+  background:linear-gradient(135deg,rgba(20,45,75,.97),rgba(10,25,45,.97));
+  border:1px solid var(--accent);color:var(--txt);white-space:nowrap;max-width:92vw;
+  box-shadow:0 12px 40px rgba(0,0,0,.6);transition:transform .42s cubic-bezier(.2,.9,.3,1.2)
+}
+.toast.show{transform:translate(-50%,0)}
+.toast.gold{border-color:var(--gold);box-shadow:0 12px 40px rgba(255,200,87,.3)}
+.toast.bad{border-color:var(--danger)}
+.modal{
+  position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;
+  background:rgba(2,6,15,.88);backdrop-filter:blur(8px);
+  opacity:0;pointer-events:none;transition:opacity .4s
+}
+.modal.show{opacity:1;pointer-events:auto}
+.modal-card{
+  max-width:400px;width:100%;padding:32px 24px;text-align:center;border-radius:22px;
+  background:linear-gradient(160deg,rgba(22,50,86,.96),rgba(8,18,34,.98));
+  border:1px solid rgba(255,200,87,.45);
+  box-shadow:0 0 70px rgba(255,200,87,.28);
+  transform:scale(.86);transition:transform .45s cubic-bezier(.2,.9,.3,1.4)
+}
+.modal.show .modal-card{transform:scale(1)}
+.modal-card .crown{font-size:66px;line-height:1;animation:float 2.6s ease-in-out infinite;filter:drop-shadow(0,0,25px,#ffc857)}
+.modal-card h2{
+  font-size:26px;margin:12px 0 6px;letter-spacing:1.6px;font-weight:900;
+  background:linear-gradient(90deg,#ffc857,#ff9f43,#ffc857);
+  -webkit-background-clip:text;background-clip:text;color:transparent
+}
+.modal-card p{font-size:13.5px;color:var(--muted);margin-bottom:8px}
+.modal-card .final-xp{font-size:30px;font-weight:900;color:var(--accent);margin:14px 0 4px}
+/* ==================== RESPONSIF ==================== */
+@media(max-width:520px){
+  #stage{padding:70px 11px 32px}
+  .hud-name{max-width:82px;font-size:13px}
+  .hud-rank{font-size:10px}
+  .badge-strip .b{width:23px;height:23px;font-size:12px;border-radius:8px}
+  .bench{grid-template-columns:1fr 1fr;gap:8px}
+  .mini-beaker{width:56px;height:74px}
+  .meter-screen{font-size:17px}
+  .controls{grid-template-columns:1fr 1fr}
+  .q-text{font-size:14.5px}
+  .opt{font-size:13.5px;padding:12px}
+  .module-head{top:60px}
+  .alat-grid{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+}
+@media(max-width:360px){
+  .bench{grid-template-columns:1fr}
+  .hud-stats .badge-strip{display:none}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg3d"></canvas>
+<div class="veil"></div>
+
+<!-- ============ HUD ============ -->
+<header id="hud" class="hud hidden">
+  <div class="hud-id">
+    <div class="hud-avatar">🧪</div>
+    <div style="min-width:0">
+      <div class="hud-name" id="hudName">Peneliti</div>
+      <div class="hud-rank" id="hudRank">Siswa Magang</div>
+    </div>
+  </div>
+  <div class="hud-stats">
+    <div class="xp-pill"><span>⚡</span><span id="hudXp">0</span>&nbsp;XP</div>
+    <div class="badge-strip" id="badgeStrip"></div>
+  </div>
+</header>
+
+<!-- ============ STAGE ============ -->
+<main id="stage">
+
+  <!-- START -->
+  <section id="screen-start" class="screen active">
+    <div class="start-card glass">
+      <div class="logo-flask">⚗️</div>
+      <h1>BUFFER QUEST</h1>
+      <p class="subtitle">Misi Laboratorium Kimia</p>
+      <p class="desc">Larutan Penyangga &middot; Kimia Kelas XI<br>Selesaikan 4 misi &amp; raih gelar <b style="color:#ffc857">Buffer Master</b></p>
+      <label for="nameInput">Nama Peneliti</label>
+      <input id="nameInput" type="text" maxlength="18" placeholder="Tulis namamu di sini..." autocomplete="off" />
+      <button id="btnStart" class="btn-primary">MULAI MISI ▸</button>
+      <button id="btnReset" class="btn-ghost">↺ Reset Progres Tersimpan</button>
+    </div>
+  </section>
+
+  <!-- MENU -->
+  <section id="screen-menu" class="screen">
+    <div class="menu-head glass">
+      <h2>🧭 Pilih Misi Laboratorium</h2>
+      <div class="progress-bar"><div id="progFill"></div></div>
+      <div class="prog-text" id="progText">0 / 4 misi selesai</div>
+    </div>
+    <div class="mission-list" id="missionList"></div>
+  </section>
+
+  <!-- MODUL -->
+  <section id="screen-module" class="screen">
+    <div class="module-wrap glass">
+      <div class="module-head">
+        <button id="btnBack" class="btn-back">◂ Kembali</button>
+        <h2 id="modTitle">Modul</h2>
+      </div>
+      <div id="moduleBody"></div>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast"></div>
+
+<!-- ============ MODAL ============ -->
+<div id="modal" class="modal">
+  <div class="modal-card">
+    <div class="crown">👑</div>
+    <h2>BUFFER MASTER</h2>
+    <p>Selamat, <b id="modalName" style="color:#fff">Peneliti</b>!</p>
+    <p>Kamu telah menuntaskan seluruh misi laboratorium larutan penyangga.</p>
+    <div class="final-xp" id="modalXp">0 XP</div>
+    <p id="modalBadges" style="font-size:12px"></p>
+    <button id="modalClose" class="btn-primary" style="margin-top:18px">Lanjutkan ▸</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     DATA JSON
+     ============================================================ -->
+<script type="application/json" id="gameData">
+{
+  "badges": {
+    "science":     { "icon": "🔬", "name": "Penjelajah Sains",   "desc": "Menuntaskan materi & kuis konsep larutan penyangga" },
+    "technology":  { "icon": "📈", "name": "Ahli Instrumentasi", "desc": "Menguasai simulasi pH meter digital" },
+    "engineering": { "icon": "⚙️", "name": "Perancang Lab",      "desc": "Menyelesaikan seluruh tahapan praktikum" },
+    "mathematics": { "icon": "🧮", "name": "Kalkulator Buffer",  "desc": "Menuntaskan 5 soal perhitungan pH" },
+    "master":      { "icon": "👑", "name": "Buffer Master",      "desc": "Menuntaskan seluruh misi Buffer Quest" }
+  },
+
+  "missions": [
+    { "key":"science",     "icon":"🔬", "name":"SCIENCE",     "sub":"Materi & 5 Soal Kuis Konsep",       "color":"#22e0c8", "xp":50  },
+    { "key":"technology",  "icon":"📈", "name":"TECHNOLOGY",  "sub":"Simulasi pH Meter Digital",         "color":"#3b82f6", "xp":50  },
+    { "key":"engineering", "icon":"⚙️", "name":"ENGINEERING", "sub":"Alat & Tahapan Praktikum",          "color":"#8b5cf6", "xp":50  },
+    { "key":"mathematics", "icon":"🧮", "name":"MATHEMATICS", "sub":"Rumus & 5 Soal Perhitungan pH",     "color":"#ffc857", "xp":100 }
+  ],
+
+  "science": {
+    "materi": [
+      {
+        "h": "1. Apa itu Larutan Penyangga?",
+        "p": [
+          "Larutan penyangga (<i>buffer</i>) adalah larutan yang mampu <b>mempertahankan nilai pH</b>-nya ketika ditambahkan sedikit asam, sedikit basa, atau ketika diencerkan.",
+          "pH larutan penyangga hanya berubah sangat kecil — jauh lebih kecil dibanding air murni pada perlakuan yang sama."
+        ]
+      },
+      {
+        "h": "2. Komponen Penyusun Larutan Penyangga",
+        "list": [
+          "<b>Penyangga Asam</b> = asam lemah + basa konjugasinya (garamnya). Contoh: <span class='hl'>CH₃COOH dengan CH₃COONa</span>",
+          "<b>Penyangga Basa</b> = basa lemah + asam konjugasinya (garamnya). Contoh: <span class='hl'>NH₃ dengan NH₄Cl</span>"
+        ],
+        "p": ["Campuran asam kuat + basa kuat, atau asam kuat + garamnya, <b>bukan</b> larutan penyangga karena tidak memiliki pasangan konjugasi."]
+      },
+      {
+        "h": "3. Mekanisme Kerja Penyangga Asam (CH₃COOH / CH₃COO⁻)",
+        "list": [
+          "Ditambah asam (H⁺): ion H⁺ dinetralkan oleh basa konjugasi → <b>CH₃COO⁻ + H⁺ → CH₃COOH</b>",
+          "Ditambah basa (OH⁻): ion OH⁻ dinetralkan oleh asam lemah → <b>CH₃COOH + OH⁻ → CH₃COO⁻ + H₂O</b>"
+        ]
+      },
+      {
+        "h": "4. Mekanisme Kerja Penyangga Basa (NH₃ / NH₄⁺)",
+        "list": [
+          "Ditambah asam (H⁺): <b>NH₃ + H⁺ → NH₄⁺</b>",
+          "Ditambah basa (OH⁻): <b>NH₄⁺ + OH⁻ → NH₃ + H₂O</b>"
+        ]
+      },
+      {
+        "h": "5. Sifat-Sifat Larutan Penyangga",
+        "list": [
+          "pH relatif <b>tidak berubah</b> saat ditambah sedikit asam atau basa.",
+          "pH <b>tidak berubah</b> saat diencerkan, karena perbandingan mol asam dan basa konjugasi tetap.",
+          "Memiliki <b>kapasitas penyangga</b> yang terbatas — jika asam/basa yang ditambahkan terlalu banyak, penyangga akan habis dan pH berubah drastis."
+        ]
+      },
+      {
+        "h": "6. Peran Larutan Penyangga dalam Kehidupan",
+        "list": [
+          "Darah manusia dijaga pada pH <span class='hl'>7,35 – 7,45</span> oleh pasangan <b>H₂CO₃ / HCO₃⁻</b>.",
+          "Cairan di dalam sel dijaga oleh pasangan <b>H₂PO₄⁻ / HPO₄²⁻</b>.",
+          "Digunakan pada obat tetes mata, sampo, pasta gigi, dan proses fermentasi."
+        ]
+      }
+    ],
+    "quiz": [
+      {
+        "q": "Larutan penyangga (buffer) adalah larutan yang mampu mempertahankan pH-nya karena mengandung ...",
+        "options": [
+          "asam kuat dan basa kuat",
+          "asam lemah dan basa konjugasinya",
+          "basa kuat dan garam netral",
+          "asam kuat dan garamnya",
+          "dua jenis asam lemah"
+        ],
+        "answer": 1,
+        "explain": "Larutan penyangga tersusun dari <b>asam lemah + basa konjugasinya</b> (mis. CH₃COOH/CH₃COO⁻) atau <b>basa lemah + asam konjugasinya</b> (mis. NH₃/NH₄⁺)."
+      },
+      {
+        "q": "Pasangan larutan berikut yang dapat membentuk larutan penyangga adalah ...",
+        "options": [
+          "HCl dan NaCl",
+          "NaOH dan NaCl",
+          "CH₃COOH dan CH₃COONa",
+          "HCl dan NaOH (habis bereaksi)",
+          "HNO₃ dan KNO₃"
+        ],
+        "answer": 2,
+        "explain": "<b>CH₃COOH</b> adalah asam lemah dan <b>CH₃COONa</b> menyediakan basa konjugasi CH₃COO⁻. Pasangan inilah yang membentuk penyangga asam. HCl, NaOH, dan HNO₃ adalah elektrolit kuat sehingga tidak membentuk penyangga."
+      },
+      {
+        "q": "Sebanyak 100 mL larutan penyangga CH₃COOH/CH₃COONa ditetesi 1 mL HCl 0,1 M. pH larutan tersebut akan ...",
+        "options": [
+          "turun sangat drastis",
+          "hampir tidak berubah",
+          "naik sangat drastis",
+          "tepat menjadi 7",
+          "tidak dapat ditentukan"
+        ],
+        "answer": 1,
+        "explain": "Itulah <b>sifat khas larutan penyangga</b>. Ion H⁺ dari HCl langsung dinetralkan oleh basa konjugasi CH₃COO⁻ membentuk CH₃COOH, sehingga pH hanya bergeser sangat sedikit."
+      },
+      {
+        "q": "Sistem penyangga utama yang menjaga pH darah manusia sekitar 7,4 adalah ...",
+        "options": [
+          "CH₃COOH / CH₃COO⁻",
+          "H₂CO₃ / HCO₃⁻",
+          "NH₃ / NH₄⁺",
+          "HF / F⁻",
+          "HCl / Cl⁻"
+        ],
+        "answer": 1,
+        "explain": "Pasangan <b>H₂CO₃/HCO₃⁻</b> (asam karbonat–bikarbonat) merupakan sistem penyangga utama darah. Pasangan H₂PO₄⁻/HPO₄²⁻ juga berperan, tetapi bukan sistem utamanya."
+      },
+      {
+        "q": "Ketika sedikit larutan NaOH ditambahkan ke dalam penyangga CH₃COOH/CH₃COO⁻, reaksi yang terjadi adalah ...",
+        "options": [
+          "OH⁻ bereaksi dengan CH₃COOH membentuk CH₃COO⁻ dan air",
+          "OH⁻ bereaksi dengan CH₃COO⁻ membentuk CH₃COOH",
+          "pH larutan naik sangat drastis",
+          "jumlah CH₃COOH bertambah banyak",
+          "tidak terjadi reaksi apa pun"
+        ],
+        "answer": 0,
+        "explain": "Ion OH⁻ dari NaOH dinetralkan oleh komponen asam lemah: <b>CH₃COOH + OH⁻ → CH₃COO⁻ + H₂O</b>. Karena OH⁻ habis bereaksi, pH nyaris tidak berubah."
+      }
+    ]
+  },
+
+  "technology": {
+    "intro": "Uji sendiri ketahanan pH larutan penyangga dibanding air murni menggunakan pH meter digital virtual. Setiap klik menambahkan <b>0,005 mol</b> zat ke dalam 1 L larutan.",
+    "notes": [
+      "Aquades (air murni) tidak memiliki kemampuan penyangga — pH-nya berubah drastis.",
+      "Larutan penyangga CH₃COOH 0,1 M / CH₃COONa 0,1 M (Ka = 1,8 × 10⁻⁵) memiliki pH awal 4,74.",
+      "Volume dianggap tetap sehingga perubahan pH hanya dipengaruhi jumlah mol."
+    ]
+  },
+
+  "engineering": {
+    "alat": [
+      { "svg":"beaker",  "n":"Gelas Kimia",    "f":"Tempat melarutkan & mencampur" },
+      { "svg":"flask",   "n":"Labu Ukur 100 mL","f":"Mengencerkan hingga tanda tera" },
+      { "svg":"pipet",   "n":"Pipet Volume",   "f":"Mengambil larutan tepat & akurat" },
+      { "svg":"balance", "n":"Neraca Analitik","f":"Menimbang padatan sangat presisi" },
+      { "svg":"phmeter", "n":"pH Meter",       "f":"Mengukur pH larutan secara digital" },
+      { "svg":"rod",     "n":"Batang Pengaduk","f":"Menghomogenkan larutan" }
+    ],
+    "steps": [
+      { "t":"Menyiapkan Alat dan Bahan", "d":"Siapkan gelas kimia, labu ukur 100 mL, pipet volume, neraca analitik, pH meter, batang pengaduk, dan botol semprot. Pastikan semua alat bersih dan kering." },
+      { "t":"Menimbang dan Mengukur Bahan", "d":"Timbang 0,1 mol CH₃COONa (≈ 8,2 gram) dengan neraca analitik, dan ukur 0,1 mol CH₃COOH pekat (≈ 5,7 mL) menggunakan pipet volume." },
+      { "t":"Melarutkan Asam Lemah", "d":"Masukkan CH₃COOH ke dalam gelas kimia yang telah diisi ±50 mL aquades, lalu aduk dengan batang pengaduk hingga homogen." },
+      { "t":"Mencampurkan Garam Konjugasi", "d":"Tambahkan CH₃COONa sedikit demi sedikit ke dalam larutan sambil diaduk hingga seluruh padatan larut sempurna." },
+      { "t":"Memindahkan ke Labu Ukur", "d":"Pindahkan larutan ke labu ukur 100 mL. Bilas gelas kimia dengan botol semprot agar tidak ada larutan tersisa, lalu tambahkan aquades sampai tanda tera." },
+      { "t":"Mengukur pH Larutan", "d":"Kalibrasi pH meter terlebih dahulu. Celupkan elektroda ke dalam larutan, tunggu hingga angka stabil, lalu catat hasilnya (pH teoretis ≈ 4,74)." },
+      { "t":"Mencatat dan Menganalisis Data", "d":"Catat pH hasil pengukuran, bandingkan dengan hasil perhitungan teoretis, hitung persen kesalahan, lalu simpulkan apakah larutan berhasil menjadi penyangga." }
+    ]
+  },
+
+  "mathematics": {
+    "rumus": [
+      {
+        "h":"A. Penyangga Asam (asam lemah + basa konjugasi)",
+        "f":"[H⁺] = Ka × (mol asam lemah / mol basa konjugasi)",
+        "f2":"pH = pKa + log (mol basa konjugasi / mol asam lemah)",
+        "note":"pKa = −log Ka. Perbandingan dapat memakai mol atau konsentrasi (karena volumenya sama)."
+      },
+      {
+        "h":"B. Penyangga Basa (basa lemah + asam konjugasi)",
+        "f":"[OH⁻] = Kb × (mol basa lemah / mol asam konjugasi)",
+        "f2":"pOH = pKb + log (mol asam konjugasi / mol basa lemah)",
+        "note":"Setelah pOH didapat, gunakan pH = 14 − pOH."
+      },
+      {
+        "h":"C. Penambahan Asam Kuat (HCl)",
+        "f":"mol asam lemah = awal + mol HCl",
+        "f2":"mol basa konjugasi = awal − mol HCl",
+        "note":"H⁺ dinetralkan oleh basa konjugasi. Jika basa konjugasi habis, kapasitas penyangga terlampaui."
+      },
+      {
+        "h":"D. Penambahan Basa Kuat (NaOH)",
+        "f":"mol asam lemah = awal − mol NaOH",
+        "f2":"mol basa konjugasi = awal + mol NaOH",
+        "note":"OH⁻ dinetralkan oleh asam lemah."
+      },
+      {
+        "h":"E. Pengenceran",
+        "f":"pH tidak berubah",
+        "f2":"perbandingan mol asam : basa konjugasi tetap",
+        "note":"Karena volume kedua komponen bertambah dengan faktor yang sama."
+      }
+    ],
+    "quiz": [
+      {
+        "q":"Larutan penyangga dibuat dari CH₃COOH 0,1 M dan CH₃COONa 0,1 M. Jika Ka = 1,8 × 10⁻⁵, berapakah pH larutan tersebut?",
+        "options": ["4,74", "4,44", "5,26", "9,26", "1,80"],
+        "answer": 0,
+        "explain":"pKa = −log (1,8 × 10⁻⁵) = 5 − log 1,8 = 5 − 0,255 = <b>4,74</b>.<br>pH = pKa + log ([CH₃COONa]/[CH₃COOH]) = 4,74 + log (0,1/0,1) = 4,74 + log 1 = <b>4,74</b>."
+      },
+      {
+        "q":"50 mL CH₃COOH 0,2 M dicampur dengan 50 mL CH₃COONa 0,1 M. Jika Ka = 1,8 × 10⁻⁵, pH campuran adalah ...",
+        "options": ["4,44", "4,74", "5,04", "4,14", "4,60"],
+        "answer": 0,
+        "explain":"mol CH₃COOH = 50 mL × 0,2 M = 10 mmol<br>mol CH₃COONa = 50 mL × 0,1 M = 5 mmol<br>pH = 4,74 + log (5/10) = 4,74 + log 0,5 = 4,74 + (−0,30) = <b>4,44</b>."
+      },
+      {
+        "q":"Larutan penyangga terdiri dari NH₃ 0,1 M dan NH₄Cl 0,1 M. Jika Kb NH₃ = 1,8 × 10⁻⁵, pH larutan adalah ...",
+        "options": ["9,26", "4,74", "5,26", "8,74", "9,00"],
+        "answer": 0,
+        "explain":"pKb = −log (1,8 × 10⁻⁵) = 4,74<br>pOH = pKb + log ([NH₄⁺]/[NH₃]) = 4,74 + log (0,1/0,1) = 4,74<br>pH = 14 − pOH = 14 − 4,74 = <b>9,26</b>."
+      },
+      {
+        "q":"Berapakah perbandingan mol CH₃COONa : CH₃COOH yang diperlukan agar pH larutan penyangga tepat 5? (Ka = 1,8 × 10⁻⁵)",
+        "options": ["1,8 : 1", "1 : 1,8", "1 : 1", "3,6 : 1", "0,55 : 1"],
+        "answer": 0,
+        "explain":"pH = pKa + log ([basa konjugasi]/[asam])<br>5 = 4,74 + log r → log r = 0,26 → r = 10⁰·²⁶ ≈ 1,8<br>Jadi perbandingannya <b>CH₃COONa : CH₃COOH = 1,8 : 1</b>."
+      },
+      {
+        "q":"1 L larutan penyangga mengandung 0,1 mol CH₃COOH dan 0,1 mol CH₃COONa. Ke dalamnya ditambahkan 0,01 mol HCl (volume diabaikan). Jika Ka = 1,8 × 10⁻⁵, pH akhir larutan adalah ...",
+        "options": ["4,66", "4,74", "3,00", "4,83", "5,74"],
+        "answer": 0,
+        "explain":"HCl bereaksi dengan CH₃COO⁻: CH₃COO⁻ + H⁺ → CH₃COOH<br>mol CH₃COOH = 0,1 + 0,01 = <b>0,11 mol</b><br>mol CH₃COO⁻ = 0,1 − 0,01 = <b>0,09 mol</b><br>pH = 4,74 + log (0,09/0,11) = 4,74 + (−0,087) = <b>4,66</b>.<br>Perhatikan: pH hanya turun 0,08 satuan — bukti sifat penyangga!"
+      }
+    ]
+  }
+}
+</script>
+
+<!-- ============================================================
+     THREE.JS (WebGL)
+     ============================================================ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+/* ============================================================
+   0. UTILITAS
+   ============================================================ */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const fmt = (n, d=2) => n.toFixed(d).replace('.', ',');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* --- Bunyi sederhana (Web Audio) --- */
+let actx = null;
+function beep(freq=440, dur=0.09, type='sine', vol=0.06){
+  try{
+    if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if(actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+    o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + dur);
+  }catch(e){}
+}
+const sfxClick   = () => beep(520, .06, 'square', .04);
+const sfxCorrect = () => { beep(660,.09,'sine',.07); setTimeout(()=>beep(880,.14,'sine',.07),95); };
+const sfxWrong   = () => { beep(200,.16,'sawtooth',.05); };
+const sfxBadge   = () => { [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.16,'sine',.07), i*110)); };
+
+/* ============================================================
+   1. DATA JSON
+   ============================================================ */
+const DATA = JSON.parse($('#gameData').textContent);
+
+/* ============================================================
+   2. STATE + LOCALSTORAGE
+   ============================================================ */
+const SAVE_KEY = 'bufferQuest_v1';
+const defaultState = () => ({
+  name: '',
+  xp: 0,
+  badges: [],
+  done: { science:false, technology:false, engineering:false, mathematics:false },
+  quiz: { science:{ i:0, wrong:0 }, mathematics:{ i:0, wrong:0 } },
+  engStep: 0,
+  techActions: 0,
+  techDone: false
+});
+let state = defaultState();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return null;
+    const s = JSON.parse(raw);
+    const d = defaultState();
+    return {
+      ...d, ...s,
+      done: { ...d.done, ...(s.done||{}) },
+      quiz: { ...d.quiz, ...(s.quiz||{}) },
+      badges: Array.isArray(s.badges) ? s.badges : []
+    };
+  }catch(e){ return null; }
+}
+function saveState(){
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }catch(e){}
+}
+const saved = loadState();
+if(saved) state = saved;
+
+/* ============================================================
+   3. TIGA DIMENSI (WebGL) — Beaker Virtual
+   ============================================================ */
+let renderer, scene, camera, liquidMesh, beakerGroup, molecules = [], clock;
+let targetColor = null, currentColor = null;
+let three3DReady = false;
+
+function phToColor(pH){
+  const t = Math.max(0, Math.min(1, pH / 14));
+  const c = new THREE.Color();
+  c.setHSL(t * 0.66, 0.82, 0.5);   // pH 0 = merah, 7 = hijau, 14 = biru
+  return c;
+}
+
+function init3D(){
+  if(typeof THREE === 'undefined') return;
+  const canvas = $('#bg3d');
+  try{
+    renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true, powerPreference:'high-performance' });
+  }catch(e){ return; }
+
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.8));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x050b1a, 0.035);
+
+  camera = new THREE.PerspectiveCamera(48, window.innerWidth/window.innerHeight, 0.1, 200);
+  camera.position.set(0, 2.0, 9.5);
+  camera.lookAt(0, 0, 0);
+
+  clock = new THREE.Clock();
+
+  /* --- Cahaya --- */
+  scene.add(new THREE.AmbientLight(0x88bbff, 0.9));
+  const key = new THREE.DirectionalLight(0xffffff, 1.0);
+  key.position.set(5, 9, 7); scene.add(key);
+  const rimA = new THREE.PointLight(0x22e0c8, 2.2, 34); rimA.position.set(-6, 3, 5); scene.add(rimA);
+  const rimB = new THREE.PointLight(0x3b82f6, 1.8, 34); rimB.position.set(6, -3, -4); scene.add(rimB);
+
+  /* --- Grup Beaker --- */
+  beakerGroup = new THREE.Group();
+  beakerGroup.position.set(0, -0.2, 0);
+  scene.add(beakerGroup);
+
+  const glassMat = new THREE.MeshPhongMaterial({
+    color: 0xaee8ff, transparent:true, opacity:0.13,
+    shininess:110, specular:0xffffff, side:THREE.DoubleSide, depthWrite:false
+  });
+  const wall = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.0, 3.8, 48, 1, true), glassMat);
+  beakerGroup.add(wall);
+
+  const bottom = new THREE.Mesh(new THREE.CircleGeometry(2.0, 48), glassMat);
+  bottom.rotation.x = -Math.PI/2; bottom.position.y = -1.9;
+  beakerGroup.add(bottom);
+
+  /* Bibir beaker */
+  const rim = new THREE.Mesh(
+    new THREE.TorusGeometry(2.0, 0.045, 10, 60),
+    new THREE.MeshPhongMaterial({ color:0x9fe4ff, transparent:true, opacity:0.4, shininess:120 })
+  );
+  rim.rotation.x = Math.PI/2; rim.position.y = 1.9;
+  beakerGroup.add(rim);
+
+  /* Skala volume */
+  for(let i=0;i<4;i++){
+    const tick = new THREE.Mesh(
+      new THREE.BoxGeometry(0.36, 0.026, 0.026),
+      new THREE.MeshBasicMaterial({ color:0x8fe0ff, transparent:true, opacity:0.35 })
+    );
+    tick.position.set(1.78, -0.9 + i*0.6, 0);
+    beakerGroup.add(tick);
+  }
+
+  /* --- Cairan --- */
+  const liquidMat = new THREE.MeshPhongMaterial({
+    color: 0x3ddc97, transparent:true, opacity:0.62,
+    shininess:90, specular:0xffffff, emissive:0x0a3a34
+  });
+  liquidMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.92, 1.92, 2.4, 48), liquidMat);
+  liquidMesh.position.y = -0.7;
+  beakerGroup.add(liquidMesh);
+
+  /* --- Molekul mengambang --- */
+  const acidMat = new THREE.MeshPhongMaterial({ color:0xff8a5c, emissive:0x3a1004, shininess:90 });
+  const baseMat = new THREE.MeshPhongMaterial({ color:0x5cc8ff, emissive:0x04203a, shininess:90 });
+
+  for(let i=0;i<30;i++){
+    const rad = 0.075 + Math.random()*0.075;
+    const isAcid = Math.random() > 0.5;
+    const m = new THREE.Mesh(new THREE.SphereGeometry(rad, 12, 10), isAcid ? acidMat : baseMat);
+    const ang = Math.random() * Math.PI * 2;
+    const rr  = Math.random() * 1.5;
+    m.userData = {
+      ang,
+      rr,
+      y: -1.55 + Math.random() * 2.0,
+      spd: 0.12 + Math.random() * 0.3,
+      bob: Math.random() * Math.PI * 2
+    };
+    m.position.set(Math.cos(ang)*rr, m.userData.y, Math.sin(ang)*rr);
+    beakerGroup.add(m);
+    molecules.push(m);
+  }
+
+  /* --- Cincin orbit dekoratif --- */
+  const ringMat = new THREE.MeshBasicMaterial({ color:0x22e0c8, transparent:true, opacity:0.14, side:THREE.DoubleSide });
+  const ring1 = new THREE.Mesh(new THREE.TorusGeometry(3.4, 0.012, 8, 90), ringMat);
+  ring1.rotation.x = Math.PI * 0.42; scene.add(ring1);
+  const ring2 = new THREE.Mesh(new THREE.TorusGeometry(4.3, 0.01, 8, 90), ringMat.clone());
+  ring2.material.color.set(0x8b5cf6);
+  ring2.rotation.x = Math.PI * 0.58; ring2.rotation.z = 0.6; scene.add(ring2);
+  scene.userData = { ring1, ring2 };
+
+  currentColor = phToColor(4.74);
+  targetColor  = currentColor.clone();
+  liquidMesh.material.color.copy(currentColor);
+
+  three3DReady = true;
+  window.addEventListener('resize', onResize);
+  animate();
+}
+
+function onResize(){
+  if(!three3DReady) return;
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate(){
+  if(!three3DReady) return;
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  /* Rotasi lembut seluruh beaker */
+  beakerGroup.rotation.y = Math.sin(t * 0.28) * 0.34;
+  beakerGroup.position.y = -0.2 + Math.sin(t * 0.9) * 0.06;
+
+  /* Kamera bernapas */
+  camera.position.x = Math.sin(t * 0.16) * 1.5;
+  camera.position.y = 2.0 + Math.sin(t * 0.3) * 0.35;
+  camera.lookAt(0, -0.1, 0);
+
+  /* Molekul mengambang */
+  molecules.forEach(m => {
+    const d = m.userData;
+    d.ang += 0.004 * d.spd * 6;
+    d.bob += 0.02;
+    const y = d.y + Math.sin(d.bob) * 0.18;
+    m.position.set(Math.cos(d.ang) * d.rr, y, Math.sin(d.ang) * d.rr);
+  });
+
+  /* Cincin */
+  if(scene.userData.ring1){
+    scene.userData.ring1.rotation.z = t * 0.13;
+    scene.userData.ring2.rotation.z = -t * 0.09 + 0.6;
+  }
+
+  /* Transisi warna cairan */
+  if(currentColor && targetColor){
+    currentColor.lerp(targetColor, 0.045);
+    liquidMesh.material.color.copy(currentColor);
+    liquidMesh.material.emissive.copy(currentColor).multiplyScalar(0.22);
+  }
+
+  renderer.render(scene, camera);
+}
+
+/* ============================================================
+   4. HUD & UI UMUM
+   ============================================================ */
+function rankOf(xp){
+  if(xp >= 250) return '👑 Buffer Master';
+  if(xp >= 200) return '🔭 Peneliti Muda';
+  if(xp >= 120) return '⚗️ Analis Kimia';
+  if(xp >= 50)  return '🧫 Asisten Lab';
+  return '🎓 Siswa Magang';
+}
+
+function updateHUD(){
+  $('#hudName').textContent = state.name || 'Peneliti';
+  $('#hudRank').textContent = rankOf(state.xp);
+  $('#hudXp').textContent = state.xp;
+
+  const strip = $('#badgeStrip');
+  strip.innerHTML = '';
+  ['science','technology','engineering','mathematics','master'].forEach(k => {
+    const b = DATA.badges[k];
+    const el = document.createElement('div');
+    el.className = 'b' + (state.badges.includes(k) ? ' on' : '');
+    el.textContent = b.icon;
+    el.title = b.name;
+    strip.appendChild(el);
+  });
+
+  const n = Object.values(state.done).filter(Boolean).length;
+  const pct = (n/4)*100;
+  const fill = $('#progFill');
+  if(fill) fill.style.width = pct + '%';
+  const pt = $('#progText');
+  if(pt) pt.textContent = n + ' / 4 misi selesai' + (state.badges.includes('master') ? ' — GELAR DIPEROLEH 👑' : '');
+}
+
+let toastTimer = null;
+function toast(msg, type=''){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = 'toast'; }, 2700);
+}
+
+function addXP(amount, label){
+  state.xp += amount;
+  saveState();
+  updateHUD();
+  toast('+' + amount + ' XP  ' + (label || ''), '');
+}
+
+function awardBadge(key){
+  if(state.badges.includes(key)) return;
+  state.badges.push(key);
+  saveState();
+  updateHUD();
+  sfxBadge();
+  toast('🏅 Badge: ' + DATA.badges[key].name, 'gold');
+}
+
+function checkMaster(){
+  const all = state.done.science && state.done.technology && state.done.engineering && state.done.mathematics;
+  if(all && !state.badges.includes('master')){
+    awardBadge('master');
+    setTimeout(showMasterModal, 900);
+  }
+}
+
+function showMasterModal(){
+  $('#modalName').textContent = state.name || 'Peneliti';
+  $('#modalXp').textContent = state.xp + ' XP';
+  $('#modalBadges').textContent = 'Total badge: ' + state.badges.length + ' / 5';
+  $('#modal').classList.add('show');
+}
+$('#modalClose').addEventListener('click', () => {
+  $('#modal').classList.remove('show');
+  sfxClick();
+});
+
+/* ============================================================
+   5. NAVIGASI LAYAR
+   ============================================================ */
+function showScreen(id){
+  $$('.screen').forEach(s => s.classList.remove('active'));
+  $('#' + id).classList.add('active');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+/* ============================================================
+   6. START SCREEN
+   ============================================================ */
+$('#btnStart').addEventListener('click', startGame);
+$('#nameInput').addEventListener('keydown', e => { if(e.key === 'Enter') startGame(); });
+
+function startGame(){
+  const val = $('#nameInput').value.trim();
+  if(!val){
+    $('#nameInput').focus();
+    $('#nameInput').style.borderColor = '#ff5c7a';
+    toast('Tulis namamu dulu ya!', 'bad');
+    sfxWrong();
+    setTimeout(() => { $('#nameInput').style.borderColor = ''; }, 1200);
+    return;
+  }
+  state.name = val;
+  saveState();
+  sfxClick();
+  $('#hud').classList.remove('hidden');
+  updateHUD();
+  renderMenu();
+  showScreen('screen-menu');
+}
+
+$('#btnReset').addEventListener('click', () => {
+  if(confirm('Hapus semua progres (XP, badge, jawaban) dan mulai dari awal?')){
+    localStorage.removeItem(SAVE_KEY);
+    state = defaultState();
+    $('#nameInput').value = '';
+    $('#hud').classList.add('hidden');
+    updateHUD();
+    toast('Progres direset.', 'bad');
+    sfxClick();
+  }
+});
+
+/* ============================================================
+   7. MENU MISI
+   ============================================================ */
+function renderMenu(){
+  const list = $('#missionList');
+  list.innerHTML = '';
+  DATA.missions.forEach(m => {
+    const done = state.done[m.key];
+    const btn = document.createElement('button');
+    btn.className = 'mission-btn' + (done ? ' done' : '');
+    btn.style.setProperty('--mc', m.color);
+    btn.innerHTML = `
+      <div class="ico">${m.icon}</div>
+      <div class="txt">
+        <b>${m.name}</b>
+        <span>${m.sub}</span>
+      </div>
+      <div class="stat">${done ? '✓ SELESAI' : '+' + m.xp + ' XP'}</div>
+    `;
+    btn.addEventListener('click', () => { sfxClick(); openModule(m.key); });
+    list.appendChild(btn);
+  });
+  updateHUD();
+}
+
+/* ============================================================
+   8. MODUL ROUTER
+   ============================================================ */
+$('#btnBack').addEventListener('click', () => {
+  sfxClick();
+  renderMenu();
+  showScreen('screen-menu');
+});
+
+function openModule(key){
+  const m = DATA.missions.find(x => x.key === key);
+  $('#modTitle').textContent = m.icon + '  ' + m.name + ' — ' + m.sub;
+  const body = $('#moduleBody');
+  body.innerHTML = '';
+  if(key === 'science')     renderScience(body);
+  if(key === 'technology')  renderTechnology(body);
+  if(key === 'engineering') renderEngineering(body);
+  if(key === 'mathematics') renderMathematics(body);
+  showScreen('screen-module');
+}
+
+/* ============================================================
+   9. MODUL SCIENCE
+   ============================================================ */
+function renderScience(host){
+  host.innerHTML = `
+    <div class="tabs">
+      <button class="tab active" data-tab="materi">📘 Materi</button>
+      <button class="tab" data-tab="kuis">❓ Kuis (5 Soal)</button>
+    </div>
+    <div id="sci-materi"></div>
+    <div id="sci-kuis" style="display:none"></div>
+  `;
+
+  /* --- Materi --- */
+  const mat = $('#sci-materi');
+  DATA.science.materi.forEach(sec => {
+    const d = document.createElement('div');
+    d.className = 'materi-card';
+    let html = `<h3>${sec.h}</h3>`;
+    if(sec.p) html += sec.p.map(p => `<p>${p}</p>`).join('');
+    if(sec.list) html += '<ul>' + sec.list.map(li => `<li>${li}</li>`).join('') + '</ul>';
+    d.innerHTML = html;
+    mat.appendChild(d);
+  });
+
+  /* --- Kuis --- */
+  renderQuiz('science', $('#sci-kuis'));
+
+  /* --- Tab switching --- */
+  $$('.tab', host).forEach(t => {
+    t.addEventListener('click', () => {
+      sfxClick();
+      $$('.tab', host).forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const isMateri = t.dataset.tab === 'materi';
+      $('#sci-materi').style.display = isMateri ? '' : 'none';
+      $('#sci-kuis').style.display   = isMateri ? 'none' : '';
+    });
+  });
+}
+
+/* ============================================================
+   10. MODUL MATHEMATICS
+   ============================================================ */
+function renderMathematics(host){
+  host.innerHTML = `
+    <div class="tabs">
+      <button class="tab active" data-tab="rumus">📐 Rumus</button>
+      <button class="tab" data-tab="latihan">🧮 Latihan (5 Soal)</button>
+    </div>
+    <div id="math-rumus"></div>
+    <div id="math-latihan" style="display:none"></div>
+  `;
+
+  const box = $('#math-rumus');
+  DATA.mathematics.rumus.forEach(r => {
+    const d = document.createElement('div');
+    d.className = 'materi-card';
+    d.innerHTML = `
+      <h3>${r.h}</h3>
+      <div class="formula-box"><span class="big">${r.f}</span></div>
+      <div class="formula-box"><span class="big">${r.f2}</span></div>
+      <p style="font-size:12.5px;color:#8fb3d9">💡 ${r.note}</p>
+    `;
+    box.appendChild(d);
+  });
+
+  renderQuiz('mathematics', $('#math-latihan'));
+
+  $$('.tab', host).forEach(t => {
+    t.addEventListener('click', () => {
+      sfxClick();
+      $$('.tab', host).forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const isR = t.dataset.tab === 'rumus';
+      $('#math-rumus').style.display   = isR ? '' : 'none';
+      $('#math-latihan').style.display = isR ? 'none' : '';
+    });
+  });
+}
+
+/* ============================================================
+   11. MESIN KUIS (dipakai Science & Mathematics)
+   ============================================================ */
+const QUIZ_CFG = {
+  science:     { questions: DATA.science.quiz,     xpFirst: 10, xpRetry: 6,  label: 'SCIENCE',     badge: 'science' },
+  mathematics: { questions: DATA.mathematics.quiz, xpFirst: 20, xpRetry: 12, label: 'MATHEMATICS', badge: 'mathematics' }
+};
+
+function renderQuiz(key, host){
+  const cfg = QUIZ_CFG[key];
+  const prog = state.quiz[key];
+
+  /* Semua soal sudah selesai */
+  if(prog.i >= cfg.questions.length){
+    host.innerHTML = `
+      <div class="feedback ok" style="text-align:center;padding:22px">
+        <div style="font-size:42px;margin-bottom:8px">🎉</div>
+        <b style="font-size:16px">Misi ${cfg.label} Dituntaskan!</b><br>
+        Seluruh ${cfg.questions.length} soal telah kamu jawab dengan benar.
+      </div>`;
+    return;
+  }
+
+  const q = cfg.questions[prog.i];
+
+  host.innerHTML = `
+    <div class="q-head">
+      <span class="q-num">Soal ${prog.i + 1} dari ${cfg.questions.length}</span>
+      <span class="q-xp">+${cfg.xpFirst} XP</span>
+    </div>
+    <div class="q-text">${q.q}</div>
+    <div class="options" id="optWrap"></div>
+    <div id="fbWrap"></div>
+  `;
+
+  const wrap = $('#optWrap', host);
+  const keys = ['A','B','C','D','E'];
+
+  q.options.forEach((optText, idx) => {
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.innerHTML = `<span class="key">${keys[idx]}</span><span>${optText}</span>`;
+    b.addEventListener('click', () => handleAnswer(key, idx, b));
+    wrap.appendChild(b);
+  });
+}
+
+function handleAnswer(key, idx, btn){
+  const cfg = QUIZ_CFG[key];
+  const prog = state.quiz[key];
+  const q = cfg.questions[prog.i];
+  const host = btn.closest('#moduleBody') || document;
+
+  /* --- Jawaban salah: harus diulang sampai benar --- */
+  if(idx !== q.answer){
+    sfxWrong();
+    btn.classList.add('wrong', 'shake');
+    btn.disabled = true;
+    prog.wrong++;
+    saveState();
+    setTimeout(() => btn.classList.remove('shake'), 450);
+
+    const fb = btn.closest('.options').parentElement.querySelector('#fbWrap');
+    fb.innerHTML = `<div class="feedback bad">❌ <b>Belum tepat.</b> Coba lagi — pilihan yang salah tidak bisa dipilih ulang. Baca kembali materinya dengan teliti!</div>`;
+    return;
+  }
+
+  /* --- Jawaban benar --- */
+  sfxCorrect();
+  btn.classList.add('correct');
+  $$('.opt', btn.parentElement).forEach(x => x.disabled = true);
+
+  const firstTry = prog.wrong === 0;
+  const gain = firstTry ? cfg.xpFirst : cfg.xpRetry;
+
+  const fb = btn.closest('.options').parentElement.querySelector('#fbWrap');
+  fb.innerHTML = `
+    <div class="feedback ok">
+      ✅ <b>Benar!</b> ${firstTry ? '(percobaan pertama — XP penuh)' : '(setelah ' + prog.wrong + '× salah — XP sebagian)'}
+      <div style="margin-top:8px">${q.explain}</div>
+      <div style="margin-top:6px;color:#ffc857;font-weight:800">+${gain} XP</div>
+      <button class="btn-next" id="btnNext">${prog.i + 1 < cfg.questions.length ? 'Soal Berikutnya ▸' : 'Selesaikan Misi ▸'}</button>
+    </div>`;
+
+  prog.i++;
+  prog.wrong = 0;
+  saveState();
+  addXP(gain, '');
+
+  $('#btnNext').addEventListener('click', () => {
+    sfxClick();
+    if(prog.i >= cfg.questions.length){
+      finishModule(key, cfg.badge);
+    }else{
+      renderQuiz(key, btn.closest('#moduleBody').querySelector('#sci-kuis, #math-latihan'));
+    }
+  });
+}
+
+/* ============================================================
+   12. SELESAIKAN MODUL
+   ============================================================ */
+function finishModule(key, badgeKey){
+  if(!state.done[key]){
+    state.done[key] = true;
+    saveState();
+    awardBadge(badgeKey);
+  }
+  updateHUD();
+  checkMaster();
+  renderMenu();
+  showScreen('screen-menu');
+  toast('✅ Misi ' + key.toUpperCase() + ' selesai!', '');
+}
+
+/* ============================================================
+   13. MODUL TECHNOLOGY — Simulasi pH Meter
+   ============================================================ */
+const TECH = {
+  bufA: 0.1,     // mol CH3COOH
+  bufB: 0.1,     // mol CH3COONa
+  watH: 0,       // mol H+
+  watOH: 0,      // mol OH-
+  volWater: 1,   // L
+  pKa: 4.7447,
+  MAX: 0.1,
+  STEP: 0.005
+};
+
+function techPHbuffer(){
+  const a = Math.max(TECH.bufA, 0.0001);
+  const b = Math.max(TECH.bufB, 0.0001);
+  return TECH.pKa + Math.log10(b / a);
+}
+function techPHwater(){
+  const net = TECH.watH - TECH.watOH;
+  if(Math.abs(net) < 1e-12) return 7;
+  if(net > 0) return -Math.log10(net / TECH.volWater);
+  return 14 + Math.log10(-net / TECH.volWater);
+}
+function clampPH(p){ return Math.max(0, Math.min(14, p)); }
+
+function renderTechnology(host){
+  host.innerHTML = `
+    <div class="materi-card" style="border-left-color:#3b82f6;margin-bottom:16px">
+      <h3>📈 ${DATA.technology.intro}</h3>
+      <p style="font-size:12.5px;color:#8fb3d9">${DATA.technology.notes[0]}</p>
+    </div>
+
+    <div class="bench">
+      <div class="beaker-card" id="cardWater">
+        <div class="beaker-label">💧 Aquades<br>(Air Murni)</div>
+        <div class="mini-beaker"><div class="mini-liquid" id="liqWater" style="height:64%;background:#3ddc97"></div></div>
+        <div class="meter"><span class="meter-screen" id="phWater">7,00</span><span class="meter-tag">pH</span></div>
+      </div>
+      <div class="beaker-card" id="cardBuffer">
+        <div class="beaker-label">🧪 Larutan Penyangga<br>CH₃COOH / CH₃COONa</div>
+        <div class="mini-beaker"><div class="mini-liquid" id="liqBuffer" style="height:64%;background:#3ddc97"></div></div>
+        <div class="meter"><span class="meter-screen" id="phBuffer">4,74</span><span class="meter-tag">pH</span></div>
+      </div>
+    </div>
+
+    <div class="controls" style="margin-top:16px">
+      <button class="ctl" data-act="acid">🧪 + HCl 0,005 mol</button>
+      <button class="ctl" data-act="base">🧴 + NaOH 0,005 mol</button>
+      <button class="ctl" data-act="water">💧 + Air (pengenceran)</button>
+      <button class="ctl danger" data-act="reset">↺ Reset Simulasi</button>
+    </div>
+
+    <div class="log" id="techLog" style="margin-top:16px">
+      <div>🔬 <b>Simulasi siap.</b> Tekan tombol untuk menambahkan zat dan amati perubahan pH.</div>
+    </div>
+
+    <button class="btn-primary" id="techDone" style="margin-top:16px" disabled>
+      Selesaikan Misi Teknologi
+    </button>
+  `;
+
+  TECH.bufA = 0.1; TECH.bufB = 0.1; TECH.watH = 0; TECH.watOH = 0; TECH.volWater = 1;
+  state.techActions = state.techDone ? 4 : 0;
+
+  updateTechUI(true);
+
+  $$('.ctl', host).forEach(b => {
+    b.addEventListener('click', () => techAction(b.dataset.act));
+  });
+
+  $('#techDone').addEventListener('click', () => {
+    sfxClick();
+    state.techDone = true;
+    saveState();
+    finishModule('technology', 'technology');
+  });
+}
+
+function techAction(act){
+  if(act === 'reset'){
+    TECH.bufA = 0.1; TECH.bufB = 0.1; TECH.watH = 0; TECH.watOH = 0; TECH.volWater = 1;
+    techLog('↺ Simulasi direset ke kondisi awal.', 'y');
+    sfxClick();
+    updateTechUI(true);
+    return;
+  }
+
+  const S = TECH.STEP;
+
+  if(act === 'acid'){
+    TECH.watH = Math.min(0.3, TECH.watH + S);
+    TECH.bufA = Math.min(TECH.MAX, TECH.bufA + S);
+    TECH.bufB = Math.max(0, TECH.bufB - S);
+    techLog(`🧪 Ditambah <b>0,005 mol HCl</b>.`, '');
+  }
+  else if(act === 'base'){
+    TECH.watOH = Math.min(0.3, TECH.watOH + S);
+    TECH.bufA = Math.max(0, TECH.bufA - S);
+    TECH.bufB = Math.min(TECH.MAX, TECH.bufB + S);
+    techLog(`🧴 Ditambah <b>0,005 mol NaOH</b>.`, '');
+  }
+  else if(act === 'water'){
+    TECH.volWater *= 2;
+    techLog(`💧 Ditambah air (volume air murni menjadi ${fmt(TECH.volWater,0)} L).`, '');
+  }
+
+  state.techActions++;
+  if(state.techActions >= 4 && !state.techDone){
+    $('#techDone').disabled = false;
+  }
+  saveState();
+  sfxClick();
+  updateTechUI();
+}
+
+function techLog(msg, cls){
+  const log = $('#techLog');
+  if(!log) return;
+  const d = document.createElement('div');
+  d.className = cls || '';
+  d.innerHTML = msg;
+  log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+
+  /* Batasi panjang log */
+  while(log.children.length > 40) log.removeChild(log.firstChild);
+}
+
+function updateTechUI(initial){
+  const pHw = clampPH(techPHwater());
+  const pHb = clampPH(techPHbuffer());
+
+  const elW = $('#phWater'), elB = $('#phBuffer');
+  if(!elW || !elB) return;
+
+  elW.textContent = fmt(pHw, 2);
+  elB.textContent = fmt(pHb, 2);
+
+  /* Warna mini beaker */
+  const colW = phCSS(pHw), colB = phCSS(pHb);
+  const lw = $('#liqWater'), lb = $('#liqBuffer');
+  lw.style.background = colW;
+  lb.style.background = colB;
+
+  /* Update warna 3D */
+  if(three3DReady && typeof THREE !== 'undefined'){
+    targetColor = phToColor(pHb);
+  }
+
+  /* Peringatan kapasitas penyangga */
+  const cardB = $('#cardBuffer');
+  const bHabis = TECH.bufB <= 0.0005 || TECH.bufA <= 0.0005;
+  cardB.classList.toggle('alert', bHabis);
+
+  if(bHabis && !initial){
+    techLog(`⚠️ <b>Kapasitas penyangga terlampaui!</b> Salah satu komponen habis, pH berubah drastis.`, 'r');
+  }
+
+  /* Catatan perubahan */
+  if(!initial){
+    const dB = Math.abs(pHb - 4.7447);
+    const dW = Math.abs(pHw - 7);
+    techLog(`  → Aquades: <b>pH ${fmt(pHw,2)}</b> (Δ ${fmt(dW,2)}) &nbsp;|&nbsp; Penyangga: <b>pH ${fmt(pHb,2)}</b> (Δ ${fmt(dB,2)})`,
+      (dB < dW ? 'g' : 'y'));
+  }
+}
+
+function phCSS(pH){
+  const t = Math.max(0, Math.min(1, pH / 14));
+  const h = t * 240;   // 0 = merah, 120 = hijau, 240 = biru
+  return `hsl(${h}, 78%, 55%)`;
+}
+
+/* ============================================================
+   14. MODUL ENGINEERING — Alat & Tahapan Praktikum
+   ============================================================ */
+const SVG_ALAT = {
+  beaker: `<svg viewBox="0 0 100 100" fill="none"><path d="M26 22 L26 76 Q26 87 37 87 L63 87 Q74 87 74 76 L74 22" stroke="currentColor" stroke-width="4.5" stroke-linejoin="round"/><path d="M20 22 L80 22" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"/><path d="M31 60 Q50 55 69 60 L69 76 Q69 82 63 82 L37 82 Q31 82 31 76 Z" fill="currentColor" opacity=".28"/><path d="M44 38 h12 M44 48 h12" stroke="currentColor" stroke-width="2.5" opacity=".55" stroke-linecap="round"/></svg>`,
+  flask:  `<svg viewBox="0 0 100 100" fill="none"><path d="M44 16 L44 40 L25 75 Q21 86 32 87 L68 87 Q79 86 75 75 L56 40 L56 16" stroke="currentColor" stroke-width="4.5" stroke-linejoin="round"/><path d="M39 16 L61 16" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"/><path d="M31 70 L69 70" stroke="currentColor" stroke-width="2.2" opacity=".5"/><path d="M34 70 Q50 66 66 70 L70 76 Q73 85 65 85 L35 85 Q27 85 30 76 Z" fill="currentColor" opacity=".28"/></svg>`,
+  pipet:  `<svg viewBox="0 0 100 100" fill="none"><rect x="45" y="10" width="10" height="52" rx="3" stroke="currentColor" stroke-width="4"/><path d="M50 62 L50 84" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M50 84 L50 92" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><rect x="41" y="20" width="18" height="9" rx="3" fill="currentColor" opacity=".55"/><path d="M45 40 h10 M45 48 h10" stroke="currentColor" stroke-width="2.2" opacity=".6" stroke-linecap="round"/></svg>`,
+  balance:`<svg viewBox="0 0 100 100" fill="none"><rect x="16" y="58" width="68" height="28" rx="7" stroke="currentColor" stroke-width="4.5"/><rect x="25" y="66" width="33" height="11" rx="3" fill="currentColor" opacity=".28"/><path d="M30 58 L30 42 Q30 33 40 33 L60 33 Q70 33 70 42 L70 58" stroke="currentColor" stroke-width="4.5" stroke-linejoin="round"/><circle cx="70" cy="71" r="3.2" fill="currentColor"/><path d="M22 90 h56" stroke="currentColor" stroke-width="3" opacity=".45" stroke-linecap="round"/></svg>`,
+  phmeter:`<svg viewBox="0 0 100 100" fill="none"><rect x="25" y="12" width="50" height="36" rx="7" stroke="currentColor" stroke-width="4.5"/><rect x="33" y="20" width="34" height="20" rx="4" fill="currentColor" opacity=".32"/><path d="M50 48 L50 76" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"/><path d="M50 76 L50 92" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="76" r="4.5" fill="currentColor" opacity=".6"/><path d="M37 30 h10" stroke="currentColor" stroke-width="2.2" opacity=".7" stroke-linecap="round"/></svg>`,
+  rod:    `<svg viewBox="0 0 100 100" fill="none"><path d="M33 15 L67 85" stroke="currentColor" stroke-width="7.5" stroke-linecap="round"/><path d="M33 15 L67 85" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity=".35"/></svg>`
+};
+
+function renderEngineering(host){
+  let alatHTML = '<div class="alat-grid">';
+  DATA.engineering.alat.forEach(a => {
+    alatHTML += `
+      <div class="alat">
+        ${SVG_ALAT[a.svg]}
+        <b>${a.n}</b>
+        <span>${a.f}</span>
+      </div>`;
+  });
+  alatHTML += '</div>';
+
+  host.innerHTML = `
+    <div class="materi-card" style="border-left-color:#8b5cf6">
+      <h3>⚙️ Peralatan Laboratorium</h3>
+      <p>Berikut alat-alat utama yang digunakan untuk membuat larutan penyangga CH₃COOH/CH₃COONa 0,1 M sebanyak 100 mL.</p>
+    </div>
+    ${alatHTML}
+    <div class="steps-title">🧪 Tahapan Praktikum — klik sesuai urutan</div>
+    <div id="stepList"></div>
+    <div id="engStatus" style="margin-top:14px"></div>
+  `;
+
+  renderSteps(host);
+}
+
+function renderSteps(host){
+  const list = $('#stepList', host);
+  list.innerHTML = '';
+  DATA.engineering.steps.forEach((s, i) => {
+    const div = document.createElement('div');
+    const done = i < state.engStep;
+    const locked = i > state.engStep;
+    div.className = 'step' + (done ? ' done' : '') + (locked ? ' locked' : '');
+    div.innerHTML = `
+      <div class="n">${done ? '✓' : i + 1}</div>
+      <div class="c"><b>${s.t}</b><p>${s.d}</p></div>
+    `;
+    div.addEventListener('click', () => clickStep(i, div, host));
+    list.appendChild(div);
+  });
+
+  const status = $('#engStatus', host);
+  if(state.engStep >= DATA.engineering.steps.length){
+    status.innerHTML = `
+      <div class="feedback ok">
+        ✅ <b>Seluruh tahapan praktikum selesai!</b> Kamu telah menyusun prosedur pembuatan larutan penyangga dengan benar.
+      </div>
+      <button class="btn-primary" id="engDone">Selesaikan Misi Engineering</button>`;
+    $('#engDone').addEventListener('click', () => {
+      sfxClick();
+      finishModule('engineering', 'engineering');
+    });
+  }else{
+    status.innerHTML = `<div class="feedback ok" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);color:#8fb3d9">
+      Progres: <b>${state.engStep} / ${DATA.engineering.steps.length}</b> tahapan. Klik tahapan berikutnya secara berurutan.
+    </div>`;
+  }
+}
+
+function clickStep(i, el, host){
+  if(i < state.engStep) return;                 // sudah selesai
+  if(i > state.engStep){                        // salah urutan
+    sfxWrong();
+    el.classList.add('shake');
+    setTimeout(() => el.classList.remove('shake'), 450);
+    toast('⚠️ Ikuti urutan tahapan dengan benar!', 'bad');
+    return;
+  }
+  sfxCorrect();
+  state.engStep++;
+  saveState();
+  renderSteps(host);
+}
+
+/* ============================================================
+   15. BOOTSTRAPPING
+   ============================================================ */
+(function boot(){
+  init3D();
+  updateHUD();
+
+  /* Jika sudah pernah menyimpan nama, lanjutkan langsung */
+  if(state.name){
+    $('#nameInput').value = state.name;
+    $('#hud').classList.remove('hidden');
+    renderMenu();
+    showScreen('screen-menu');
+    toast('👋 Selamat datang kembali, ' + state.name + '!', '');
+  }else{
+    showScreen('screen-start');
+  }
+
+  /* Simpan sebelum keluar */
+  window.addEventListener('beforeunload', saveState);
+  document.addEventListener('visibilitychange', () => {
+    if(document.hidden) saveState();
+  });
+
+  /* Sembunyikan HUD di layar start */
+  const obs = new MutationObserver(() => {
+    const startActive = $('#screen-start').classList.contains('active');
+    $('#hud').classList.toggle('hidden', startActive && !state.name);
+  });
+  $$('.screen').forEach(s => obs.observe(s, { attributes:true, attributeFilter:['class'] }));
+})();
+</script>
+</body>
+</html>
